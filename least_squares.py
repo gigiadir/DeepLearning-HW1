@@ -4,11 +4,12 @@ import matplotlib.pyplot as plt
 from gradient_test import gradient_test
 
 
-
+'''
+'''
 def least_squares_loss(A, b, x):
     loss = 0.5 * np.sum(np.square(A@x - b))
 
-    return loss
+    return loss, None
 
 
 def least_squares_gradient(A, b, x):
