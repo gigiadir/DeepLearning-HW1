@@ -16,6 +16,10 @@ def generate_gradient_test_plot(epsilons, first_equation, second_equation):
     plt.show()
 
 
+'''
+    f: R^{dim} -> R
+    grad_f: R^{dim} -> R^{dim}
+'''
 def gradient_test(f, grad_f, dim):
     x = np.random.rand(dim)
     grad_f_x = grad_f(x)

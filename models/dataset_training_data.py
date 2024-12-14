@@ -31,7 +31,7 @@ class DatasetTrainingData:
     def init_dimensions(self):
         self.n = self.X_raw.shape[0]
         self.m = self.X_raw.shape[1]
-        self.l = self.C.shape[0]
+        self.l = self.C.shape[1]
 
     def init_weights_and_biases(self):
         X_raw = self.X_raw

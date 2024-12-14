@@ -21,7 +21,7 @@ def load_dataset(dataset_name):
 def create_dataset_training_data(dataset_name):
     dataset = load_dataset(dataset_name)
     X_raw, C = dataset['X_train'], dataset['C_train']
-    training_data = DatasetTrainingData(X_raw, C)
+    training_data = DatasetTrainingData(X_raw, C.T)
 
     return training_data
 
