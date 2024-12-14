@@ -125,8 +125,6 @@ def test_dataset_learning_rates_and_batch_sizes(dataset):
 
     batch_sizes = [16, 32, 64, 128, 256, 512, 1024]
     learning_rates = [1e-4, 1e-3, 1e-2, 1e-1, 1.0]
-    batch_sizes = [16]
-    learning_rates = [0.01]
     results = {}
 
     for batch_size, learning_rate in zip(batch_sizes, learning_rates):
@@ -136,9 +134,10 @@ def test_dataset_learning_rates_and_batch_sizes(dataset):
                                                                  accuracy_func=softmax_cross_entropy_accuracy,
                                                                  learning_rate=learning_rate,
                                                                  batch_size=batch_size,
-                                                                 max_epochs=300,
+                                                                 max_epochs=2500,
                                                                  is_samples_in_columns=True)
         key = f"ds_{dataset}_lr_{learning_rate}_bs_{batch_size}"
+
         results[key] = {
             "batch_size": batch_size,
             "learning_rate": learning_rate,
