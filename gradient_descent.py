@@ -18,13 +18,13 @@ def sample_minibatch(X, C, batch_size, is_samples_in_columns = False):
     C : (n+1) x m
     initial_W : (n+1) * l x 1
 '''
-def sgd(X, C, initial_W, grad_f, loss_func, batch_size, learning_rate = 0.1, max_iter = 10**6, tolerance = 1e-6, is_samples_in_columns = False):
-    iter = 0
+def sgd(X, C, initial_W, grad_f, loss_func, batch_size, learning_rate = 0.1, max_epochs =1000, tolerance = 0.01, is_samples_in_columns = False):
+    epoch = 0
     theta = initial_W
     theta_list = [theta]
     loss_list = []
 
-    while iter < max_iter:
+    while epoch < max_epochs:
         X_batch, C_batch = sample_minibatch(X, C, batch_size, is_samples_in_columns)
         g = grad_f(X_batch, C_batch, theta)
         if np.linalg.norm(g, ord=2) < tolerance:
@@ -35,7 +35,7 @@ def sgd(X, C, initial_W, grad_f, loss_func, batch_size, learning_rate = 0.1, max
 
         theta_list.append(theta)
         loss_list.append(loss)
-        iter += 1
+        epoch += 1
 
     return theta, theta_list, loss_list
 

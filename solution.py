@@ -26,7 +26,7 @@ def section_1b():
     m = 20
     A, b, x_points = generate_least_squares(m)
     x = np.random.rand(2, 1)
-    min_point, theta_list, loss_list = sgd(A, b, x, least_squares_gradient, least_squares_loss, 5, max_iter=100, tolerance=-0.01)
+    min_point, theta_list, loss_list = sgd(A, b, x, least_squares_gradient, least_squares_loss, 5, max_epochs=100, tolerance=-0.01)
     for i in range(0, len(theta_list), 30):
         plot_gradient_descent_least_squares_result(x_points, b, theta_list[i])
 
@@ -40,7 +40,7 @@ def section_1c():
     initial_weights_vector = flatten_weights_matrix_to_vector(W)
 
     min_point, progression_list, loss_progression_list = sgd(X, C, initial_weights_vector, softmax_cross_entropy_gradient,
-                                                             softmax_cross_entropy, batch_size=100, max_iter=1000, is_samples_in_columns=True)
+                                                             softmax_cross_entropy, batch_size=100, max_epochs=1000, is_samples_in_columns=True)
 
     plt.figure(figsize=(8, 6))  # Optional: Set the figure size
     plt.plot(range(1, len(loss_progression_list) + 1), loss_progression_list, label="Loss Progression", color='b')
