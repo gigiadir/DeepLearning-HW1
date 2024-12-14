@@ -54,7 +54,7 @@ def section_1c():
                                                                     accuracy_func=softmax_cross_entropy_accuracy,
                                                                     learning_rate=learning_rate,
                                                                     batch_size=batch_size,
-                                                                    max_epochs=4000,
+                                                                    max_epochs=200,
                                                                     is_samples_in_columns=True)
         key = f"lr_{learning_rate}_bs_{batch_size}"
         results[key] = {
@@ -65,10 +65,10 @@ def section_1c():
             "min_point": min_point
         }
 
-        plot_list(loss_progression_list, x_label="Iteration", y_label="Loss", label="Loss Progression", title=f"Peaks- Loss Progression During SGD - LR: {learning_rate}, batch_size: {batch_size}")
-        plot_list(accuracy_list, x_label="Iteration", y_label="Accuracy", label="Accuracy Progression", title=f"Peaks - Accuracy Progression During SGD - LR: {learning_rate}, batch_size: {batch_size}")
+        plot_list(loss_progression_list, x_label="Iteration", y_label="Loss", label="Loss Progression", title=f"Peaks- Loss Progression During SGD - LR: {learning_rate}, batch_size: {batch_size}", filename=f"output/lr_{learning_rate}_bs_{batch_size}_loss")
+        plot_list(accuracy_list, x_label="Iteration", y_label="Accuracy", label="Accuracy Progression", title=f"Peaks - Accuracy Progression During SGD - LR: {learning_rate}, batch_size: {batch_size}", filename=f"output/lr_{learning_rate}_bs_{batch_size}_accuracy")
 
-    with open("sgd_results.pkl", "wb") as f:
+    with open("output/sgd_results.pkl", "wb") as f:
         pickle.dump(results, f)
 
 
