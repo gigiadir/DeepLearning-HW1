@@ -17,8 +17,17 @@ def section_1a():
 
     gradient_test(softmax_cross_entropy_func, softmax_cross_entropy_gradient_func, (n+1) * l)
 
+def section_1b():
+    pass
+
+def section_1c():
+    pass
+
 def main():
     section_1a()
+    section_1b()
+    section_1c()
+
 
 
 if __name__ == '__main__':
