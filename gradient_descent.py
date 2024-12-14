@@ -13,11 +13,16 @@ def sample_minibatch(X, C, batch_size, is_samples_in_columns = False):
 
     return X_batch, C_batch
 
-
-def sgd(X, C, initial_W, grad_f, batch_size, learning_rate = 0.1, max_iter = 10**6, tolerance = 1e-6, is_samples_in_columns = False):
+'''
+    X : (n+1) x m
+    C : (n+1) x m
+    initial_W : (n+1) * l x 1
+'''
+def sgd(X, C, initial_W, grad_f, loss_func, batch_size, learning_rate = 0.1, max_iter = 10**6, tolerance = 1e-6, is_samples_in_columns = False):
     iter = 0
     theta = initial_W
-    progression_list = [theta]
+    theta_list = [theta]
+    loss_list = []
 
     while iter < max_iter:
         X_batch, C_batch = sample_minibatch(X, C, batch_size, is_samples_in_columns)
@@ -26,10 +31,13 @@ def sgd(X, C, initial_W, grad_f, batch_size, learning_rate = 0.1, max_iter = 10*
             break
 
         theta = theta - learning_rate * g
-        progression_list.append(theta)
+        loss = loss_func(X_batch, C_batch, theta)
+
+        theta_list.append(theta)
+        loss_list.append(loss)
         iter += 1
 
-    return theta, progression_list
+    return theta, theta_list, loss_list
 
 def test_sgd():
     pass
