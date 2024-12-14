@@ -17,7 +17,7 @@ def sgd(X, C, initial_W, batch_size,
     while epoch < max_epochs:
         X_batch, C_batch = sample_minibatch(X, C, batch_size, is_samples_in_columns)
         g = grad_f(X_batch, C_batch, theta)
-        if np.linalg.norm(learning_rate * g, ord=2) < tolerance:
+        if np.linalg.norm(g, ord=2) < tolerance:
             break
 
         theta = theta - learning_rate * g

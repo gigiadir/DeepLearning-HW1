@@ -1,6 +1,9 @@
+import pickle
+
 import numpy as np
 from matplotlib import pyplot as plt
 
+from data_utils import create_dataset_training_data
 from figure_utils import plot_list
 from gradient_descent import sgd
 from models.dataset_training_data import DatasetTrainingData
@@ -71,7 +74,6 @@ def generate_mock_data_with_three_labels():
 
     return X, C, labels
 
-
 def test_logistic_regression_with_two_labels():
     X, C, labels = generate_mock_data_with_two_labels()
     training_data = DatasetTrainingData(X, C)
@@ -92,7 +94,6 @@ def test_logistic_regression_with_two_labels():
     plot_data_with_two_labels(X, labels)
     plot_list(values=loss_progression_list, x_label = "Iteration", y_label = "Loss", title="Loss progression", label="Loss progression")
     plot_list(values =accuracy_list, x_label = "Iteration", y_label = "Accuracy Percentage", title="Accuracy Progression", label="Accuracy Percentage")
-
 
 def test_logistic_regression_with_three_labels():
     X, C, labels = generate_mock_data_with_three_labels()
@@ -117,6 +118,44 @@ def test_logistic_regression_with_three_labels():
     plot_list(values=accuracy_list, x_label="Iteration", y_label="Accuracy Percentage", title="Accuracy Progression",
               label="Accuracy Percentage")
 
+def test_dataset_learning_rates_and_batch_sizes(dataset):
+    dataset_training_data = create_dataset_training_data(dataset, 0.25)
+    X, C, W = dataset_training_data.X, dataset_training_data.C, dataset_training_data.W
+    initial_weights_vector = flatten_weights_matrix_to_vector(W)
+
+    batch_sizes = [16, 32, 64, 128, 256, 512, 1024]
+    learning_rates = [1e-4, 1e-3, 1e-2, 1e-1, 1.0]
+    batch_sizes = [16]
+    learning_rates = [0.01]
+    results = {}
+
+    for batch_size, learning_rate in zip(batch_sizes, learning_rates):
+        min_point, loss_progression_list, accuracy_list, _ = sgd(X, C, initial_weights_vector,
+                                                                 grad_f=softmax_cross_entropy_gradient,
+                                                                 loss_func=softmax_cross_entropy_loss,
+                                                                 accuracy_func=softmax_cross_entropy_accuracy,
+                                                                 learning_rate=learning_rate,
+                                                                 batch_size=batch_size,
+                                                                 max_epochs=300,
+                                                                 is_samples_in_columns=True)
+        key = f"ds_{dataset}_lr_{learning_rate}_bs_{batch_size}"
+        results[key] = {
+            "batch_size": batch_size,
+            "learning_rate": learning_rate,
+            "loss_progression": loss_progression_list,
+            "accuracy_progression": accuracy_list,
+            "min_point": min_point
+        }
+
+        plot_list(loss_progression_list, x_label="Iteration", y_label="Loss", label="Loss Progression",
+                  title=f"{dataset}- Loss Progression During SGD - LR: {learning_rate}, batch_size: {batch_size}",
+                  filename=f"output/ds_{dataset}_lr_{learning_rate}_bs_{batch_size}_loss")
+        plot_list(accuracy_list, x_label="Iteration", y_label="Accuracy", label="Accuracy Progression",
+                  title=f"{dataset} - Accuracy Progression During SGD - LR: {learning_rate}, batch_size: {batch_size}",
+                  filename=f"output/ds_{dataset}_lr_{learning_rate}_bs_{batch_size}_accuracy")
+
+    with open(f"output/{dataset}_sgd_results.pkl", "wb") as f:
+        pickle.dump(results, f)
 
 
 if __name__ == '__main__':
