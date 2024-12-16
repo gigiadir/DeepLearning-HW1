@@ -1,6 +1,6 @@
 import numpy as np
 
-from data_utils import sample_minibatch
+from utils.data_utils import sample_minibatch
 
 '''
     X : (n+1) x m
@@ -9,7 +9,7 @@ from data_utils import sample_minibatch
 '''
 def sgd(X, C, initial_W, batch_size,
         grad_f, loss_func, accuracy_func,
-        learning_rate = 0.1, max_epochs = 1000, tolerance = 0.001, is_samples_in_columns = False):
+        learning_rate = 0.1, max_epochs =1000, tolerance = 1e-4, is_samples_in_columns = False):
     epoch = 0
     theta = initial_W
     loss_list, accuracy_list, theta_list = [], [], [theta]
@@ -17,7 +17,7 @@ def sgd(X, C, initial_W, batch_size,
     while epoch < max_epochs:
         X_batch, C_batch = sample_minibatch(X, C, batch_size, is_samples_in_columns)
         g = grad_f(X_batch, C_batch, theta)
-        if np.linalg.norm(g, ord=2) < tolerance:
+        if np.linalg.norm(learning_rate * g, ord=2) < tolerance:
             break
 
         theta = theta - learning_rate * g
@@ -35,8 +35,6 @@ def sgd(X, C, initial_W, batch_size,
 
     return theta, loss_list, accuracy_list, theta_list
 
-def test_sgd():
-    pass
 
 def sgd_with_momentum():
     pass

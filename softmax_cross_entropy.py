@@ -1,6 +1,6 @@
 import numpy as np
 
-from utils import reshape_weights_vector_to_matrix, flatten_weights_matrix_to_vector
+from utils.vector_utils import reshape_weights_vector_to_matrix, flatten_weights_matrix_to_vector
 
 
 def softmax(x: np.ndarray):

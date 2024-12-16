@@ -34,10 +34,7 @@ def load_dataset(dataset_name):
 
     return datasets
 
-def create_dataset_training_data(dataset_name, percentage = 1):
-    dataset = load_dataset(dataset_name)
-    X_raw, C = dataset['X_train'], dataset['C_train']
-
+def create_dataset_training_data(X_raw, C, percentage = 1):
     if percentage < 1:
         m = X_raw.shape[1]
         X_raw, C = sample_minibatch(X_raw, C, int(percentage * m), is_samples_in_columns=True)
@@ -45,4 +42,12 @@ def create_dataset_training_data(dataset_name, percentage = 1):
     training_data = DatasetTrainingData(X_raw, C)
 
     return training_data
+
+
+def get_dataset(dataset_name, train_percentage = 1):
+    dataset = load_dataset(dataset_name)
+    training_data = create_dataset_training_data(dataset["X_train"], dataset["C_train"], train_percentage)
+    validation_data = create_dataset_training_data(dataset["X_validation"], dataset["C_validation"])
+
+    return training_data, validation_data
 

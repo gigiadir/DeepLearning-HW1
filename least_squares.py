@@ -4,8 +4,6 @@ import matplotlib.pyplot as plt
 from gradient_test import gradient_test
 
 
-'''
-'''
 def least_squares_loss(A, b, x):
     loss = 0.5 * np.sum(np.square(A@x - b))
 
@@ -42,7 +40,6 @@ def validate_least_squares_gradient(A, b):
 
 
 def plot_gradient_descent_least_squares_result(x, y, least_squares_result):
-    # plot the results
     plt.figure(figsize=(10, 8))
     plt.plot(x, y, 'b.')
     plt.plot(x, least_squares_result[0] * x + least_squares_result[1], 'r')
