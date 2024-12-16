@@ -2,7 +2,7 @@ import numpy as np
 
 from utils.data_utils import get_dataset
 from gradient_descent import sgd
-from gradient_test import gradient_test
+from gradient_and_jacobian_verification import gradient_test
 from least_squares import generate_least_squares, least_squares_gradient, plot_gradient_descent_least_squares_result, \
     least_squares_loss
 from softmax_cross_entropy import softmax_cross_entropy_loss, softmax_cross_entropy_gradient
@@ -39,8 +39,8 @@ def section_1c():
     test_dataset_learning_rates_and_batch_sizes("SwissRoll")
 
 def main():
-    section_1a()
-    section_1b()
+    #section_1a()
+    #section_1b()
     section_1c()
 
 

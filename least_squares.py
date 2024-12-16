@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-from gradient_test import gradient_test
+from gradient_and_jacobian_verification import gradient_test
 
 
 def least_squares_loss(A, b, x):
