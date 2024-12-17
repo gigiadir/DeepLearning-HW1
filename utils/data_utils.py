@@ -22,7 +22,7 @@ def sample_minibatch(X, C, batch_size, is_samples_in_columns = False):
 
 
 def load_dataset(dataset_name):
-    data_path = os.path.join("./Data", f"{dataset_name}Data.mat")
+    data_path = os.path.join("./data", f"{dataset_name}Data.mat")
     mat_data = scipy.io.loadmat(data_path)
 
     datasets = {
