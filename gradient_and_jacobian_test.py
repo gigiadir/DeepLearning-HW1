@@ -38,7 +38,24 @@ def validate_gradient_test():
     gradient_test(lambda x: x ** 2, lambda x: 2 * x, 1)
     gradient_test(lambda v: np.sum(np.square(v)), lambda v: 2 * v, 5)
 
+def jacobian_test(f, jac_f_v, dim_input):
+    x = np.random.rand(dim_input)
+    n_points = 15
+    epsilons = 0.25 ** np.arange(n_points)
+    d = np.random.rand(dim_input)
+    d = d / np.linalg.norm(d)
+
+    first_equation = np.array([np.linalg.norm(f(x+eps*d) - f(x), ord=2) for eps in epsilons])
+    second_equation = np.array([np.linalg.norm(f(x+eps*d) - f(x) - jac_f_v(x, eps*d), ord=2) for eps in epsilons])
+
+    generate_gradient_test_plot(epsilons, first_equation, second_equation)
+
+
+def validate_jacobian_test():
+    pass
+
 if __name__ == '__main__':
     validate_gradient_test()
+    validate_jacobian_test()
 
 
