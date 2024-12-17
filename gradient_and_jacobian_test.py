@@ -1,12 +1,16 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
+from layers.layer import Layer
+from utils.figure_utils import plot_list
+
+
 def generate_gradient_test_plot(epsilons, first_equation, second_equation):
     plt.figure(figsize=(8, 6))
 
-    plt.plot(epsilons, np.abs(first_equation), label=r'$|f(x + \epsilon d) - f(x)|$', marker='o')
-    plt.plot(epsilons, np.abs(second_equation), label=r'$|f(x + \epsilon d) - f(x) - \epsilon d^T \nabla f_x|$', marker='x')
-    plt.xscale('log')
+    plt.plot(range(1, len(epsilons)+1), np.abs(first_equation), label=r'$|f(x + \epsilon d) - f(x)|$', marker='o')
+    plt.plot(range(1, len(epsilons)+1), np.abs(second_equation), label=r'$|f(x + \epsilon d) - f(x) - \epsilon d^T \nabla f_x|$', marker='x')
+    #plt.xscale('log')
     plt.yscale('log')
     plt.xlabel(r'$\epsilon$', fontsize=12)
     plt.ylabel('Value', fontsize=12)
@@ -38,24 +42,91 @@ def validate_gradient_test():
     gradient_test(lambda x: x ** 2, lambda x: 2 * x, 1)
     gradient_test(lambda v: np.sum(np.square(v)), lambda v: 2 * v, 5)
 
-def jacobian_test(f, jac_f_v, dim_input):
-    x = np.random.rand(dim_input)
+def jacobian_test(f, jac_dx_v, dim):
+    x = np.random.rand(dim, 1)
     n_points = 15
     epsilons = 0.25 ** np.arange(n_points)
-    d = np.random.rand(dim_input)
+    d = np.random.rand(dim, 1)
     d = d / np.linalg.norm(d)
 
     first_equation = np.array([np.linalg.norm(f(x+eps*d) - f(x), ord=2) for eps in epsilons])
-    second_equation = np.array([np.linalg.norm(f(x+eps*d) - f(x) - jac_f_v(x, eps*d), ord=2) for eps in epsilons])
+    second_equation = np.array([np.linalg.norm(f(x+eps*d) - f(x) - jac_dx_v(x, eps*d), ord=2) for eps in epsilons])
 
     generate_gradient_test_plot(epsilons, first_equation, second_equation)
 
+def jacobian_transpose_test(jac_dx_v, jac_transpose_dx_v, dim_u, dim_v):
+    num_iterations = 15
+    errors = []
+
+    for i in range(num_iterations):
+        u = np.random.rand(dim_u, 1)
+        v = np.random.rand(dim_v, 1)
+        x = np.random.rand(dim_v, 1)
+        first = u.T @ jac_dx_v(x, v)
+        second = v.T @ jac_transpose_dx_v(x, u)
+        error = np.abs(first - second).squeeze()
+        errors.append(error)
+
+    plot_list(errors, x_label = "Iteration", y_label = "Error", title="Transpose Test")
+
 
 def validate_jacobian_test():
-    pass
+    def f(vec):
+        x, y = vec[0], vec[1]
+        f1 = x**2 + y**2
+        f2 = x**2 - y**2
+
+        return np.array([f1, f2])
+
+    def jac_f_v(vec, v):
+        x, y = vec[0], vec[1]
+        v1, v2 = v[0], v[1]
+
+        o1 = 2*x*v1 + 2*y*v2
+        o2 = 2*x*v1 - 2*y*v2
+
+        return np.array([o1, o2])
+
+    def g(vec):
+        u, v, x, y = vec[0], vec[1], vec[2], vec[3]
+        g1 = u**2 * v * y
+        g2 = x * y + u * v
+        g3 = u * x + v**2 * y
+
+        return np.array([g1, g2, g3])
+
+    def jac_g_v(vec, v):
+        u, w, x, y = vec[0], vec[1], vec[2], vec[3]
+        v1, v2, v3, v4 = v[0], v[1], v[2], v[3]
+
+        o1 = 2 * u * w * y * v1 + u**2 * y * v2 + u**2 * w * v4
+        o2 = w * v1 + u * v2 + y * v3 + x * v4
+        o3 = x * v1 + 2 * w * y * v2 + u * v3 + w**2 * v4
+
+        return np.array([o1, o2, o3])
+
+    jacobian_test(f, jac_f_v, 2)
+    jacobian_test(g, jac_g_v, 4)
+
+
+
+def layer_jacobian_test():
+    layer = Layer(4, 3)
+    x = np.random.rand(4, 1)
+    layer.forward(x=x)
+    
+    jacobian_test(lambda b : layer.forward(x=x, b=b) ,layer.jac_db_mul_v, 3)
+    jacobian_test(lambda x : layer.forward(x=x), layer.jac_dx_mul_v, 4)
+    jacobian_test(lambda w_vector: layer.forward(x=x, W=w_vector.reshape(3, 4, order='F')), layer.jac_dw_mul_v, 3 * 4)
+
+
+    jacobian_transpose_test(layer.jac_db_mul_v, layer.jac_transpose_db_mul_v, 3, 3)
+    jacobian_transpose_test(layer.jac_dx_mul_v, layer.jac_transpose_dx_mul_v, 3, 4)
+    jacobian_transpose_test(layer.jac_dw_mul_v, layer.jac_transpose_dw_mul_v, 3,12)
 
 if __name__ == '__main__':
-    validate_gradient_test()
-    validate_jacobian_test()
+    #validate_gradient_test()
+    #validate_jacobian_test()
+    layer_jacobian_test()
 
 
