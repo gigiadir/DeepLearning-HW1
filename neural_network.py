@@ -4,16 +4,20 @@ from layers.layer import Layer
 
 
 class NeuralNetwork:
-    def __init__(self, layers: List[Layer]):
+    def __init__(self, layers: List[Layer], X, C):
         self.layers = layers
+        self.X = X
+        self.C = C
         self.learning_rate = 0.01
         self.epochs = 1000
+
+    def _get_minibatch(self):
+        return self.X, self.C
 
     def train(self, epochs):
         epoch = 0
         while epoch < epochs:
-            X, C = None, None
-            #X, C = get_minibatch()
+            X, C = self._get_minibatch()
             self.forward(X, C)
             self.backprop()
             self.update_weights()

@@ -1,18 +1,23 @@
 import numpy as np
 
+from activation import Activation, get_activation, get_activation_derivative
+
+
 class Layer:
 
-    def __init__(self, input_dim: int, output_dim:int):
+    def __init__(self, input_dim: int, output_dim:int, activation: Activation):
         self.W = np.random.randn(output_dim, input_dim)
         self.b = np.random.randn(output_dim, 1)
-        self.activation = lambda x : np.tanh(x)
-        self.activation_derivative = lambda x : 1 - np.tanh(x)**2
+        self.activation = get_activation(activation)
+        self.activation_derivative = get_activation_derivative(activation)
         self.input_dim = input_dim
         self.output_dim = output_dim
 
         self.x = None
         self.linear_output = None
         self.output = None
+        self.grad_b = None
+        self.grad_w = None
 
 
     '''
@@ -20,7 +25,7 @@ class Layer:
         b : output_dim x 1
         W : output_dim x input_dim
     '''
-    def forward(self, x = None, W = None, b = None):
+    def forward(self, x = None, W = None, b = None, C = None):
         x = x if x is not None else self.x
         W = W if W is not None else self.W
         b = b if b is not None else self.b
@@ -29,7 +34,7 @@ class Layer:
         self.linear_output = W @ x + b
         self.output = self.activation(self.linear_output)
 
-        return self.output
+        return self.output, C
 
     def backward(self, next_grad_dx):
         grad_x = self.jac_transpose_dx_mul_v(self.x, next_grad_dx)

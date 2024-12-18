@@ -108,7 +108,6 @@ def validate_jacobian_test():
     jacobian_test(g, jac_g_v, 4)
 
 
-
 def layer_jacobian_test():
     layer = Layer(4, 3)
     x = np.random.rand(4, 1)
