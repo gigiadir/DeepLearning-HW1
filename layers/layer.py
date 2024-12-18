@@ -31,20 +31,18 @@ class Layer:
 
         return self.output
 
-    def backward(self, prev_dW, prev_db):
-        #calculate gradients
-        # grad_W = None
-        # grad_b = None
-        #
-        # self.b -= learning_rate * grad_b
-        # self.W -= learning rate * grad_W
-        #
-        # return grad_W, grad_b
-        pass
+    def backward(self, next_grad_dx):
+        grad_x = self.jac_transpose_dx_mul_v(self.x, next_grad_dx)
+
+        self.grad_w = self.jac_transpose_dw_mul_v(self.W, next_grad_dx)
+        self.grad_b = self.jac_transpose_db_mul_v(self.b, next_grad_dx)
+
+        return grad_x
 
     '''
         w_vector : {output_dim * input_dim} x 1
         v_vector : {output_dim * input_dim} x 1
+        result : output_dim * 1
     '''
     def jac_dw_mul_v(self, w_vector, v_vector):
         W = w_vector.reshape(self.output_dim, self.input_dim, order='F')
@@ -56,9 +54,9 @@ class Layer:
         return result
 
     '''
-        W: k x n
-        v : k x 1
-        result : k x n
+        w_vector : {output_dim * input_dim} x 1
+        v :  output_dim x 1
+        result : {output_dim * input_dim} x 1
     '''
     def jac_transpose_dw_mul_v(self, w_vector, v):
         W = w_vector.reshape(self.output_dim, self.input_dim, order='F')
@@ -67,12 +65,22 @@ class Layer:
 
         return result.flatten(order='F')
 
+    '''
+        b : output_dim x 1
+        v : output_dim x 1
+        result : output_dim x 1
+    '''
     def jac_db_mul_v(self, b, v):
         linear_output = self.W @ self.x + b
         result = self.activation_derivative(linear_output) * v
 
         return result
 
+    '''
+        b : output_dim x 1
+        v : output_dim x 1
+        result : output_dim x 1
+    '''
     def jac_transpose_db_mul_v(self, b, v):
         linear_output = self.W @ self.x + b
         result = self.activation_derivative(linear_output) * v
@@ -82,6 +90,7 @@ class Layer:
     '''
         x : input_dim x 1 
         v : input_dim x 1
+        result : output_dim x 1
     '''
     def jac_dx_mul_v(self, x, v):
         linear_output = self.W @ x + self.b
@@ -89,6 +98,11 @@ class Layer:
 
         return result
 
+    '''
+        x : input_dim x 1
+        v : output_dim x 1
+        result : input_dim x 1 
+    '''
     def jac_transpose_dx_mul_v(self, x, v):
         linear_output = self.W @ x + self.b
         result = self.W.T @ (self.activation_derivative(linear_output) *  v)
@@ -96,5 +110,6 @@ class Layer:
         return result
 
 
-    def update_parameters(self, learning_rate):
-        pass
+    def update_weights(self, learning_rate):
+        self.b -= learning_rate * self.grad_b
+        self.W -= learning_rate * self.grad_w

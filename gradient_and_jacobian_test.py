@@ -5,16 +5,15 @@ from layers.layer import Layer
 from utils.figure_utils import plot_list
 
 
-def generate_gradient_test_plot(epsilons, first_equation, second_equation):
+def generate_verification_test_plot(epsilons, first_equation, second_equation, title = 'Gradient Test Results'):
     plt.figure(figsize=(8, 6))
 
-    plt.plot(range(1, len(epsilons)+1), np.abs(first_equation), label=r'$|f(x + \epsilon d) - f(x)|$', marker='o')
-    plt.plot(range(1, len(epsilons)+1), np.abs(second_equation), label=r'$|f(x + \epsilon d) - f(x) - \epsilon d^T \nabla f_x|$', marker='x')
-    #plt.xscale('log')
+    plt.plot(range(1, len(epsilons)+1), np.abs(first_equation), label='Zero order approximation', marker='o')
+    plt.plot(range(1, len(epsilons)+1), np.abs(second_equation), label='First order approximation', marker='x')
     plt.yscale('log')
     plt.xlabel(r'$\epsilon$', fontsize=12)
     plt.ylabel('Value', fontsize=12)
-    plt.title('Gradient Test Results')
+    plt.title(title)
     plt.legend()
     plt.grid()
     plt.show()
@@ -35,7 +34,7 @@ def gradient_test(f, grad_f, dim):
     first_equation = np.array([np.abs(f(x+eps*d) - f(x)) for eps in epsilons])
     second_equation = np.array([np.abs(f(x+eps*d) - f(x) - eps*d.T@grad_f_x) for eps in epsilons])
 
-    generate_gradient_test_plot(epsilons, first_equation, second_equation)
+    generate_verification_test_plot(epsilons, first_equation, second_equation)
 
 def validate_gradient_test():
     # Test on some simple examples
@@ -52,7 +51,7 @@ def jacobian_test(f, jac_dx_v, dim):
     first_equation = np.array([np.linalg.norm(f(x+eps*d) - f(x), ord=2) for eps in epsilons])
     second_equation = np.array([np.linalg.norm(f(x+eps*d) - f(x) - jac_dx_v(x, eps*d), ord=2) for eps in epsilons])
 
-    generate_gradient_test_plot(epsilons, first_equation, second_equation)
+    generate_verification_test_plot(epsilons, first_equation, second_equation, title="Jacobian Test Results")
 
 def jacobian_transpose_test(jac_dx_v, jac_transpose_dx_v, dim_u, dim_v):
     num_iterations = 15
@@ -67,7 +66,7 @@ def jacobian_transpose_test(jac_dx_v, jac_transpose_dx_v, dim_u, dim_v):
         error = np.abs(first - second).squeeze()
         errors.append(error)
 
-    plot_list(errors, x_label = "Iteration", y_label = "Error", title="Transpose Test")
+    plot_list(errors, x_label = "Iteration", y_label = "Error", title="Transpose Test", label_train=None)
 
 
 def validate_jacobian_test():
