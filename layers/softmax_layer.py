@@ -1,7 +1,8 @@
 import numpy as np
 
 from softmax_cross_entropy import softmax_cross_entropy_gradient_dx, softmax_cross_entropy_loss, \
-    softmax_cross_entropy_gradient_dw
+    softmax_cross_entropy_gradient_dw, softmax
+from utils.vector_utils import initialize_weights_vector
 
 '''
 X_raw : n x m
@@ -11,12 +12,13 @@ class SoftmaxLayer:
     def __init__(self, input_dim, output_dim, w_vector = None):
         self.n = input_dim
         self.l = output_dim
-        w_vector = w_vector if w_vector is not None else np.random.randn((input_dim + 1) * output_dim, 1)
+        w_vector = w_vector if w_vector is not None else initialize_weights_vector(input_dim + 1, output_dim)
 
         self.X= None
         self.C = None
         self.output_grad = None
         self.loss = None
+        self.result = None
 
         self.set_weights_vector(w_vector)
 
@@ -29,18 +31,16 @@ class SoftmaxLayer:
             m = X.shape[1]
             X = np.vstack((X, np.ones((1, m))))
 
-        loss = softmax_cross_entropy_loss(X, C, self.w_vector)
-
         self.X = X
         self.C = C
 
-        return loss
+        X_t_W = self.X.T @ self.W
+        self.result = np.apply_along_axis(softmax, axis=1, arr=X_t_W)
 
-    def get_loss(self):
-        return self.loss
-    def predict(self, X):
-        pass
+        m = self.X.shape[1]
+        loss = (-1 / m) * np.sum(self.C.T * np.log(self.result))
 
+        return self.result, loss
 
     def backprop(self, _prev_gradient):
         gradient_dx = softmax_cross_entropy_gradient_dx(self.X, self.C, self.w_vector)
@@ -57,11 +57,10 @@ class SoftmaxLayer:
 
     def get_loss_with_specific_weights(self, w_vector):
         old_w = self.w_vector
+        self.set_weights_vector(w_vector)
 
-        self.w_vector = w_vector
-        loss = self.forward(self.X, self.C)
-
-        self.w_vector = old_w
+        _, loss = self.forward(self.X, self.C)
+        self.set_weights_vector(old_w)
 
         return loss
 

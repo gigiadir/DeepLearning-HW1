@@ -1,6 +1,7 @@
 import numpy as np
 
 from activation import Activation, get_activation, get_activation_derivative
+from utils.vector_utils import initialize_weights_vector
 
 
 class Layer:
@@ -15,7 +16,7 @@ class Layer:
         self.grad_w = None
         self.mb_size = None
 
-        w_vector = w_vector if w_vector is not None else np.random.randn(output_dim * input_dim, 1)
+        w_vector = w_vector if w_vector is not None else initialize_weights_vector(output_dim, input_dim)
         self.set_weights_vector(w_vector)
 
     def set_weights_vector(self, w_vector):

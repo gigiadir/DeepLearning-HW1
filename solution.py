@@ -92,26 +92,59 @@ def section_2b():
     jacobian_transpose_test(layer.jac_dw_mul_v, layer.jac_transpose_dw_mul_v, n, n * n)
 
 def section_2c():
-    peaks_training_data, peak_validation_data = get_dataset("Peaks")
+    peaks_training_data, peak_validation_data = get_dataset("GMM")
     X_raw, C, n, l = peaks_training_data.X_raw, peaks_training_data.C, peaks_training_data.n, peaks_training_data.l
+    X_validation, C_validation = peak_validation_data.X_raw, peak_validation_data.C
 
     nn = NeuralNetwork(
         layers = [
             Layer(
                 input_dim = n,
-                output_dim = l,
+                output_dim = 8,
+                activation=Activation.TANH
+            ),
+            Layer(
+                input_dim=8,
+                output_dim=32,
+                activation=Activation.TANH
+            ),
+            Layer(
+                input_dim=32,
+                output_dim=64,
+                activation=Activation.TANH
+            ),
+            Layer(
+                input_dim=64,
+                output_dim=128,
+                activation=Activation.TANH
+            ),
+            Layer(
+                input_dim=128,
+                output_dim=64,
+                activation=Activation.TANH
+            ),
+            Layer(
+                input_dim=64,
+                output_dim=32,
+                activation=Activation.TANH
+            ),
+            Layer(
+                input_dim=32,
+                output_dim=16,
                 activation=Activation.TANH
             ),
             SoftmaxLayer(
-                input_dim= l,
+                input_dim= 16,
                 output_dim = l
             )
         ],
         X = X_raw,
-        C = C
+        C = C,
+        X_validation=X_validation,
+        C_validation=C_validation
     )
 
-    nn.train(epochs=100, mb_size = 64, learning_rate = 0.01)
+    nn.train(epochs=200, mb_size = 32, learning_rate = 0.1)
 
 def section_1():
     section_1a()

@@ -22,7 +22,7 @@ def test_softmax_layer_gradient_dx():
     softmax_layer.forward(X, C_random)
     grad_f_x = softmax_layer.backprop(None)
 
-    f = lambda X : softmax_layer.forward(X, C_random)
+    f = lambda X : softmax_layer.forward(X, C_random)[1]
 
     n_points = 10
     epsilons = 0.25 ** np.arange(n_points)
