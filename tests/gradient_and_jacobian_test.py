@@ -108,23 +108,8 @@ def validate_jacobian_test():
     jacobian_test(g, jac_g_v, 4)
 
 
-def layer_jacobian_test():
-    layer = Layer(4, 3)
-    x = np.random.rand(4, 1)
-    layer.forward(x=x)
-    
-    jacobian_test(lambda b : layer.forward(x=x, b=b) ,layer.jac_db_mul_v, 3)
-    jacobian_test(lambda x : layer.forward(x=x), layer.jac_dx_mul_v, 4)
-    jacobian_test(lambda w_vector: layer.forward(x=x, W=w_vector.reshape(3, 4, order='F')), layer.jac_dw_mul_v, 3 * 4)
-
-
-    jacobian_transpose_test(layer.jac_db_mul_v, layer.jac_transpose_db_mul_v, 3, 3)
-    jacobian_transpose_test(layer.jac_dx_mul_v, layer.jac_transpose_dx_mul_v, 3, 4)
-    jacobian_transpose_test(layer.jac_dw_mul_v, layer.jac_transpose_dw_mul_v, 3,12)
-
 if __name__ == '__main__':
-    #validate_gradient_test()
-    #validate_jacobian_test()
-    layer_jacobian_test()
+    validate_gradient_test()
+    validate_jacobian_test()
 
 

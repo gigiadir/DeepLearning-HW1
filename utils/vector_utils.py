@@ -9,6 +9,6 @@ def reshape_weights_vector_to_matrix(X, C, w_vector):
 
 
 def flatten_weights_matrix_to_vector(w_matrix):
-    w_vector = w_matrix.flatten(order='F')
+    w_vector = w_matrix.flatten(order='F').reshape(-1, 1)
 
     return w_vector

@@ -50,7 +50,7 @@ def softmax_cross_entropy_loss(X, C, w_vector):
     C : l x m
     w_vector: (n+1) * l x 1   
 '''
-def softmax_cross_entropy_gradient(X, C, w_vector):
+def softmax_cross_entropy_gradient_dw(X, C, w_vector):
     W = reshape_weights_vector_to_matrix(X, C, w_vector)
     X_t_W = X.T @ W
     softmax_across_rows = np.apply_along_axis(softmax, axis =1, arr=X_t_W)
@@ -58,5 +58,25 @@ def softmax_cross_entropy_gradient(X, C, w_vector):
 
     gradient =  (1/m) * X @ (softmax_across_rows - C.T)
     gradient_vector = flatten_weights_matrix_to_vector(gradient)
+
+    return gradient_vector
+
+'''
+    X : (n+1) x m
+    C : l x m
+    w_vector: (n+1) * l x 1
+    
+    returns: n * m (the bias weights do not need to be returned)
+'''
+def softmax_cross_entropy_gradient_dx(X, C, w_vector):
+    W = reshape_weights_vector_to_matrix(X, C, w_vector)
+    X_t_W = X.T @ W
+    softmax_across_rows = np.apply_along_axis(softmax, axis=1, arr=X_t_W)
+    m = X.shape[1]
+
+    gradient = (1 / m) * W @ (softmax_across_rows - C.T).T
+    gradient = gradient[:-1, :]
+
+    gradient_vector = gradient.flatten(order = 'F').reshape(-1, 1)
 
     return gradient_vector

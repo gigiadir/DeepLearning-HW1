@@ -22,7 +22,8 @@ def sample_minibatch(X, C, batch_size, is_samples_in_columns = False):
 
 
 def load_dataset(dataset_name):
-    data_path = os.path.join("./data", f"{dataset_name}Data.mat")
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    data_path = os.path.join(current_dir, "../data", f"{dataset_name}Data.mat")
     mat_data = scipy.io.loadmat(data_path)
 
     datasets = {
