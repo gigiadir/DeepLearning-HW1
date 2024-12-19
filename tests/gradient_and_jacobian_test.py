@@ -1,7 +1,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
-from layers.layer import Layer
 from utils.figure_utils import plot_list
 
 
@@ -24,21 +23,21 @@ def generate_verification_test_plot(epsilons, first_equation, second_equation, t
     grad_f: R^{dim} -> R^{dim}
 '''
 def gradient_test(f, grad_f, dim):
-    x = np.random.rand(dim)
+    x = np.random.rand(dim, 1)
     grad_f_x = grad_f(x)
     n_points = 15
     epsilons = 0.25 ** np.arange(n_points)
-    d = np.random.randn(dim)
+    d = np.random.randn(dim, 1)
     d = d / np.linalg.norm(d)
 
-    first_equation = np.array([np.abs(f(x+eps*d) - f(x)) for eps in epsilons])
-    second_equation = np.array([np.abs(f(x+eps*d) - f(x) - eps*d.T@grad_f_x) for eps in epsilons])
+    first_equation = np.array([np.squeeze(np.abs(f(x+eps*d) - f(x))) for eps in epsilons])
+    second_equation = np.array([np.squeeze(np.abs(f(x+eps*d) - f(x) - eps*d.T@grad_f_x)) for eps in epsilons])
 
     generate_verification_test_plot(epsilons, first_equation, second_equation)
 
 def validate_gradient_test():
     # Test on some simple examples
-    gradient_test(lambda x: x ** 2, lambda x: 2 * x, 1)
+    gradient_test(lambda x: np.square(x), lambda x: 2 * x, 1)
     gradient_test(lambda v: np.sum(np.square(v)), lambda v: 2 * v, 5)
 
 def jacobian_test(f, jac_dx_v, dim):
@@ -63,7 +62,7 @@ def jacobian_transpose_test(jac_dx_v, jac_transpose_dx_v, dim_u, dim_v):
         x = np.random.rand(dim_v, 1)
         first = u.T @ jac_dx_v(x, v)
         second = v.T @ jac_transpose_dx_v(x, u)
-        error = np.abs(first - second).squeeze()
+        error = np.abs(np.squeeze(first - second))
         errors.append(error)
 
     plot_list(errors, x_label = "Iteration", y_label = "Error", title="Transpose Test", label_train=None)

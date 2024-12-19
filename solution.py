@@ -52,14 +52,15 @@ def section_2a():
     layer = Layer(
         input_dim=n,
         output_dim=l,
-        activation=Activation.TANH,
+        activation=Activation.TANH
     )
 
-
     layer.forward(X=X, C=C)
-    jacobian_test(lambda b: layer.forward(X=X, b=b).flatten(order='F').reshape(-1, 1), layer.jac_db_mul_v, l)
-    jacobian_test(lambda x: layer.forward(X=x.reshape(n, ms_size, order='F')), layer.jac_dx_mul_v, n*ms_size)
-    jacobian_test(lambda w_vector: layer.forward(X=X, W=w_vector.reshape(l, n, order='F')).flatten(order='F').reshape(-1, 1), layer.jac_dw_mul_v, l *n)
+
+    jacobian_test(lambda b: Layer(input_dim=n, output_dim=l, activation=Activation.TANH, b=b, w_vector=layer.w_vector).forward(X=X, C=C), layer.jac_db_mul_v, l)
+    jacobian_test(lambda x: Layer(input_dim=n, output_dim=l, activation=Activation.TANH, b=layer.b, w_vector=layer.w_vector).forward(X=x.reshape(n, ms_size, order='F'), C=C), layer.jac_dx_mul_v, n*ms_size)
+    jacobian_test(lambda w_vector: Layer(input_dim=n, output_dim=l, activation=Activation.TANH, b=layer.b, w_vector=w_vector).forward(X=X, C=C), layer.jac_dw_mul_v, l * n)
+
 
     X, C = sample_minibatch(X, C, 1, True)
     layer.forward(X=X, C=C)
@@ -110,7 +111,7 @@ def section_2c():
         C = C
     )
 
-    nn.train(epochs=500, mb_size = 16, learning_rate = 0.001)
+    nn.train(epochs=100, mb_size = 64, learning_rate = 0.01)
 
 def section_1():
     section_1a()
@@ -118,8 +119,8 @@ def section_1():
     section_1c()
 
 def section_2():
-    section_2a()
-    #section_2c()
+    #section_2a()
+    section_2c()
 
 
 

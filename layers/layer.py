@@ -4,20 +4,23 @@ from activation import Activation, get_activation, get_activation_derivative
 
 
 class Layer:
-
-    def __init__(self, input_dim: int, output_dim:int, activation: Activation):
-        self.W = np.random.randn(output_dim, input_dim)
-        self.b = np.random.randn(output_dim, 1)
+    def __init__(self, input_dim: int, output_dim:int, activation: Activation, b = None, w_vector = None):
+        self.b = b if b is not None else np.random.randn(output_dim, 1)
         self.activation = get_activation(activation)
         self.activation_derivative = get_activation_derivative(activation)
         self.input_dim = input_dim
         self.output_dim = output_dim
 
-        self.x = None
         self.grad_b = None
         self.grad_w = None
         self.mb_size = None
 
+        w_vector = w_vector if w_vector is not None else np.random.randn(output_dim * input_dim, 1)
+        self.set_weights_vector(w_vector)
+
+    def set_weights_vector(self, w_vector):
+        self.w_vector = w_vector
+        self.W = w_vector.reshape(self.output_dim, self.input_dim, order='F')
 
     '''
         x : input_dim x minibatch_size 
@@ -25,14 +28,10 @@ class Layer:
         W : output_dim x input_dim
         output: output_dim x minibatch_size
     '''
-    def forward(self, X = None, W = None, b = None, C = None):
-        X = X if X is not None else self.X
-        W = W if W is not None else self.W
-        b = b if b is not None else self.b
-
+    def forward(self, X, C):
         self.X = X
         self.mb_size = X.shape[1]
-        linear_output = W @ X + b
+        linear_output = self.W @ X + self.b
         output = self.activation(linear_output)
 
         return output
@@ -52,7 +51,7 @@ class Layer:
         linear_output = W @ self.X + self.b
         result = self.activation_derivative(linear_output) * (V @ self.X)
 
-        return result.flatten(order='F').reshape(-1, 1)
+        return result
 
     '''
         w_vector : {output_dim * input_dim} x 1
@@ -77,7 +76,7 @@ class Layer:
         linear_output = self.W @ self.X + b
         result = self.activation_derivative(linear_output) * V
 
-        return result.flatten(order='F').reshape(-1, 1)
+        return result
 
     '''
         b : output_dim x 1

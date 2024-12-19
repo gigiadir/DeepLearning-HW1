@@ -1,7 +1,7 @@
 import numpy as np
 
 from layers.softmax_layer import SoftmaxLayer
-from tests.gradient_and_jacobian_test import generate_verification_test_plot
+from tests.gradient_and_jacobian_test import generate_verification_test_plot, gradient_test
 
 
 def test_softmax_layer_gradient_dx():
@@ -35,6 +35,7 @@ def test_softmax_layer_gradient_dx():
 
     generate_verification_test_plot(epsilons, first_equation, second_equation)
 
+
 def test_softmax_layer_gradient_dw():
     n = 2
     l = 5
@@ -51,23 +52,12 @@ def test_softmax_layer_gradient_dw():
 
     softmax_layer.forward(X, C_random)
     softmax_layer.backprop(None)
-    grad_f_w = softmax_layer.get_output_grad()
 
-    f = lambda w_vector: softmax_layer.forward(X=X, C=C_random, w_vector=w_vector)
+    f = lambda w_vector: softmax_layer.get_loss_with_specific_weights(w_vector)
+    grad_f = lambda w_vector : softmax_layer.get_gradient_dw_at_weights(w_vector)
 
+    gradient_test(f, grad_f, (n+1)*l)
 
-    n_points = 10
-    epsilons = 0.25 ** np.arange(n_points)
-    d = np.random.randn(n+1, l)
-    d = d / np.linalg.norm(d)
-    d = d.flatten(order='F').reshape((n+1) * l, 1)
-    w_vector = softmax_layer.w_vector
-
-    first_equation = np.array([np.abs(f(w_vector + eps * d) - f(w_vector)) for eps in epsilons])
-
-    second_equation = np.array([np.abs(f(w_vector + eps * d) - f(w_vector) - eps * d.T @ grad_f_w) for eps in epsilons])
-
-    generate_verification_test_plot(epsilons, first_equation, second_equation)
 
 if __name__ == '__main__':
     test_softmax_layer_gradient_dx()
