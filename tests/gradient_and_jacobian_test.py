@@ -22,8 +22,8 @@ def generate_verification_test_plot(epsilons, first_equation, second_equation, t
     f: R^{dim} -> R
     grad_f: R^{dim} -> R^{dim}
 '''
-def gradient_test(f, grad_f, dim):
-    x = np.random.rand(dim, 1)
+def gradient_test(f, grad_f, dim, x = None):
+    x = x if x is not None else np.random.rand(dim, 1)
     grad_f_x = grad_f(x)
     n_points = 15
     epsilons = 0.25 ** np.arange(n_points)

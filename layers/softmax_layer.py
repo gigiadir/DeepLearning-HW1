@@ -20,11 +20,17 @@ class SoftmaxLayer:
         self.loss = None
         self.result = None
 
-        self.set_weights_vector(w_vector)
+        self.set_weights_and_bias_from_vector(w_vector)
 
-    def set_weights_vector(self, w_vector):
+    def set_weights_and_bias_from_vector(self, w_vector):
         self.w_vector = w_vector
         self.W = w_vector.reshape(self.n + 1, self.l, order='F')
+
+    def get_weights_and_bias_vector(self):
+        return self.w_vector
+
+    def get_gradient_vector(self):
+        return self.output_grad
 
     def forward(self, X, C):
         if X.shape[0] == self.n:
@@ -50,17 +56,15 @@ class SoftmaxLayer:
 
     def update_weights(self, learning_rate):
         new_w_vector = self.w_vector - learning_rate * self.output_grad
-        self.set_weights_vector(new_w_vector)
+        self.set_weights_and_bias_from_vector(new_w_vector)
 
-    def get_weights_gradient(self):
-        return self.output_grad
 
     def get_loss_with_specific_weights(self, w_vector):
         old_w = self.w_vector
-        self.set_weights_vector(w_vector)
+        self.set_weights_and_bias_from_vector(w_vector)
 
         _, loss = self.forward(self.X, self.C)
-        self.set_weights_vector(old_w)
+        self.set_weights_and_bias_from_vector(old_w)
 
         return loss
 

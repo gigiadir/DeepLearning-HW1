@@ -12,6 +12,7 @@ from least_squares import generate_least_squares, least_squares_gradient, plot_g
     least_squares_loss
 from softmax_cross_entropy import softmax_cross_entropy_loss, softmax_cross_entropy_gradient_dw
 from tests.sgd_test import test_dataset_learning_rates_and_batch_sizes
+from utils.neural_network_utils import create_basic_neural_network_with_l_layers
 
 
 def section_1a():
@@ -74,24 +75,48 @@ def section_2b():
     ms_size = 10
     X, C = sample_minibatch(X, C, ms_size, True)
 
-    layer = ResNetLayer(
+    resnet_layer = ResNetLayer(
         dim=n,
         activation=Activation.TANH
     )
 
-    layer.forward(X=X, C=C)
-    jacobian_test(lambda b: layer.forward(X=X, b=b)[0], layer.jac_db_mul_v, l)
-    jacobian_test(lambda x: layer.forward(X=x.reshape(n, ms_size, order='F'))[0], layer.jac_dx_mul_v, n * ms_size)
-    jacobian_test(lambda w_vector: layer.forward(X=X, W=w_vector.reshape(l, n, order='F'))[0], layer.jac_dw_mul_v,
-                  l * n)
+    resnet_layer.forward(X=X, C=C)
+
+    # jacobian_test(lambda b: ResNetLayer(dim=n, activation=Activation.TANH,
+    #                                     w1_vector = resnet_layer.w1_vector, w2_vector = resnet_layer.w2_vector,
+    #                                     b=b).forward(X=X, C=C), resnet_layer.jac_db_mul_v, n)
+    jacobian_test(lambda w1_vector: ResNetLayer(dim=n, activation=Activation.TANH,
+                                        w1_vector=w1_vector, w2_vector=resnet_layer.w2_vector,
+                                        b=resnet_layer.b).forward(X=X, C=C), resnet_layer.jac_dw1_mul_v, n * n)
+    # jacobian_test(lambda x: layer.forward(X=x.reshape(n, ms_size, order='F'))[0], layer.jac_dx_mul_v, n * ms_size)
+    # jacobian_test(lambda w_vector: layer.forward(X=X, W=w_vector.reshape(l, n, order='F'))[0], layer.jac_dw_mul_v,
+    #               l * n)
 
     X, C = sample_minibatch(X, C, 1, True)
-    layer.forward(X=X, C=C)
-    jacobian_transpose_test(layer.jac_db_mul_v, layer.jac_transpose_db_mul_v, n, n)
-    jacobian_transpose_test(layer.jac_dx_mul_v, layer.jac_transpose_dx_mul_v, n, n)
-    jacobian_transpose_test(layer.jac_dw_mul_v, layer.jac_transpose_dw_mul_v, n, n * n)
+    resnet_layer.forward(X=X, C=C)
+    # jacobian_transpose_test(resnet_layer.jac_db_mul_v, resnet_layer.jac_transpose_db_mul_v, n, n)
+    jacobian_transpose_test(resnet_layer.jac_dw1_mul_v, resnet_layer.jac_transpose_dw1_mul_v, n, n * n)
+    #jacobian_transpose_test(layer.jac_dx_mul_v, layer.jac_transpose_dx_mul_v, n, n)
+    #jacobian_transpose_test(layer.jac_dw_mul_v, layer.jac_transpose_dw_mul_v, n, n * n)
 
 def section_2c():
+    L = 5
+    peaks_training_data, peak_validation_data = get_dataset("Peaks")
+    X_train, C_train, n, l = peaks_training_data.X_raw, peaks_training_data.C, peaks_training_data.n, peaks_training_data.l
+
+    nn = create_basic_neural_network_with_l_layers(l=L, input_dim=n, output_dim=l)
+    nn.forward(X_train, C_train)
+    nn.backprop()
+
+    f = lambda weights_and_bias_vector: nn.set_weights_and_get_loss(weights_and_bias_vector, X=X_train, C=C_train)
+    grad_f = lambda *args: nn.get_gradient_vector()
+
+    x = nn.get_weights_and_biases_vector()
+
+    gradient_test(f, grad_f, x.size, x)
+
+
+def section_2d():
     peaks_training_data, peak_validation_data = get_dataset("GMM")
     X_raw, C, n, l = peaks_training_data.X_raw, peaks_training_data.C, peaks_training_data.n, peaks_training_data.l
     X_validation, C_validation = peak_validation_data.X_raw, peak_validation_data.C
@@ -105,31 +130,6 @@ def section_2c():
             ),
             Layer(
                 input_dim=8,
-                output_dim=32,
-                activation=Activation.TANH
-            ),
-            Layer(
-                input_dim=32,
-                output_dim=64,
-                activation=Activation.TANH
-            ),
-            Layer(
-                input_dim=64,
-                output_dim=128,
-                activation=Activation.TANH
-            ),
-            Layer(
-                input_dim=128,
-                output_dim=64,
-                activation=Activation.TANH
-            ),
-            Layer(
-                input_dim=64,
-                output_dim=32,
-                activation=Activation.TANH
-            ),
-            Layer(
-                input_dim=32,
                 output_dim=16,
                 activation=Activation.TANH
             ),
@@ -137,14 +137,16 @@ def section_2c():
                 input_dim= 16,
                 output_dim = l
             )
-        ],
-        X = X_raw,
-        C = C,
-        X_validation=X_validation,
-        C_validation=C_validation
+        ]
     )
 
-    nn.train(epochs=200, mb_size = 32, learning_rate = 0.1)
+    nn.train(X_train = X_raw,
+             C_train = C,
+             X_validation=X_validation,
+             C_validation=C_validation,
+             epochs=200,
+             mb_size = 32,
+             learning_rate = 0.05)
 
 def section_1():
     section_1a()
@@ -153,7 +155,9 @@ def section_1():
 
 def section_2():
     #section_2a()
-    section_2c()
+    section_2b()
+    #section_2c()
+    #section_2d()
 
 
 
