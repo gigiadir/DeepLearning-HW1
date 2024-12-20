@@ -45,7 +45,6 @@ class ResNetLayer:
 
         self.b = b
 
-
     def forward(self, X, C):
         self.X = X
         self.mb_size = X.shape[1]
@@ -55,8 +54,7 @@ class ResNetLayer:
 
         return output
 
-
-    def backward(self, next_grad_dx):
+    def backprop(self, next_grad_dx):
         grad_x = self.jac_transpose_dx_mul_v(self.X, next_grad_dx)
 
         self.grad_w1 = self.jac_transpose_dw1_mul_v(self.W1, next_grad_dx)
@@ -96,33 +94,64 @@ class ResNetLayer:
 
         return result.flatten(order='F').reshape(-1, 1)
 
-    def jac_dw2_mul_v(self, _W2, v_vector):
+    def jac_dw2_mul_v(self, _w2_vector, v_vector):
+        V = v_vector.reshape(self.n, self.n, order='F')
         linear_part = self.W1 @ self.X + self.b
-        result = v_vector @ self.activation(linear_part)
+        result = V @ self.activation(linear_part)
 
         return result
 
-    def jac_transpose_dw2_mul_v(self, _W2, v_vector):
+    def jac_transpose_dw2_mul_v(self, _w2_vector, v_vector):
+        V = v_vector.reshape(self.n, self.mb_size, order='F')
         linear_part = self.W1 @ self.X + self.b
-        result = v_vector @ self.activation(linear_part).T
+        result = V @ (self.activation(linear_part)).T
 
-        return result
+        return result.flatten(order='F').reshape(-1, 1)
 
-    def jac_dx_mul_v(self, X, v_vector):
-        V = v_vector # reshape to wanted form
+    def jac_dx_mul_v(self, x_vector, v_vector):
+        X = x_vector.reshape(self.n, self.mb_size, order='F')
+        V = v_vector.reshape(self.n, self.mb_size, order='F')
         linear_part = self.W1 @ X + self.b
-        result = V + self.W2 @ (linear_part * (self.W1 @ V))
+        result = V + self.W2 @ (self.activation_derivative(linear_part) * (self.W1 @ V))
 
         return result
 
     def jac_transpose_dx_mul_v(self, X, v_vector):
-        V = v_vector  # reshape to wanted form
+        V = v_vector.reshape(self.n, self.mb_size, order='F')
         linear_part = self.W1 @ X + self.b
-        result = V + self.W1 @ (linear_part * (self.W2 @ V))
+        result = V + self.W1.T @ (self.activation_derivative(linear_part) * (self.W2.T @ V))
 
-        return result
+        return result.flatten(order='F').reshape(-1, 1)
 
     def update_weights(self, learning_rate):
-        self.W1 -= learning_rate * self.grad_W1
-        self.W2 -= learning_rate * self.grad_W2
+        W1_change = self.grad_w1.reshape(self.n, self.n, order='F')
+        self.W1 -= learning_rate * W1_change
+
+        W2_change = self.grad_w2.reshape(self.n, self.n, order='F')
+        self.W2 -= learning_rate * W2_change
+
         self.b -= learning_rate * self.grad_b
+
+    def get_gradient_vector(self):
+        gradient_vector = np.concatenate((self.grad_w1, self.grad_w2, self.grad_b), axis=0)
+
+        return gradient_vector
+
+    def set_weights_and_bias_from_vector(self, vector):
+        if vector.shape != (2*self.n**2 + self.n, 1):
+            raise ValueError("The weights and bias vector must be of shape 2*n^2 + 1.")
+
+        w1_vector_split_index = self.n ** 2
+        w1_vector = vector[:w1_vector_split_index]
+        w2_vector_split_index = 2 * self.n ** 2
+        w2_vector = vector[w1_vector_split_index:w2_vector_split_index]
+        b_vector = vector[w2_vector_split_index:]
+
+        self.set_w1_vector(w1_vector)
+        self.set_w2_vector(w2_vector)
+        self.set_bias_vector(b_vector)
+
+    def get_weights_and_bias_vector(self):
+        weights_and_bias_vector = np.concatenate((self.w1_vector, self.w2_vector, self.b), axis=0)
+
+        return weights_and_bias_vector

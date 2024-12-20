@@ -1,11 +1,13 @@
-from typing import List
+from typing import List, Union
 import numpy as np
 
 from layers.layer import Layer
+from layers.res_net_layer import ResNetLayer
+from layers.softmax_layer import SoftmaxLayer
 
 
 class NeuralNetwork:
-    def __init__(self, layers: List[Layer]):
+    def __init__(self, layers: List[Union[Layer, ResNetLayer, SoftmaxLayer]]):
         self.layers = layers
         self.layers_weights_and_biases_vectors = []
 

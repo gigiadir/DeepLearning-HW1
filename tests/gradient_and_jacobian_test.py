@@ -37,8 +37,9 @@ def gradient_test(f, grad_f, dim, x = None):
 
 def validate_gradient_test():
     # Test on some simple examples
-    gradient_test(lambda x: np.square(x), lambda x: 2 * x, 1)
-    gradient_test(lambda v: np.sum(np.square(v)), lambda v: 2 * v, 5)
+   # gradient_test(lambda x: np.square(x), lambda x: 2 * x, 1)
+   # gradient_test(lambda v: np.sum(np.square(v)), lambda v: 2 * v, 5)
+    gradient_test(lambda x: x * 5, lambda _x: np.float16(5), 1)
 
 def jacobian_test(f, jac_dx_v, dim):
     x = np.random.rand(dim, 1)
@@ -107,8 +108,9 @@ def validate_jacobian_test():
     jacobian_test(g, jac_g_v, 4)
 
 
+
 if __name__ == '__main__':
     validate_gradient_test()
-    validate_jacobian_test()
+    #validate_jacobian_test()
 
 

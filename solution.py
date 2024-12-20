@@ -70,7 +70,8 @@ def section_2a():
     jacobian_transpose_test(layer.jac_dw_mul_v, layer.jac_transpose_dw_mul_v, l, n*l)
 
 def section_2b():
-    peaks_training_data, _ = get_dataset("Peaks")
+    peaks_training_data, peaks_validation_data = get_dataset("Peaks")
+    X_train, C_train, X_validation, C_validation = peaks_training_data.X_raw, peaks_training_data.C, peaks_validation_data.X_raw, peaks_validation_data.C
     X, C, n, l = peaks_training_data.X_raw, peaks_training_data.C, peaks_training_data.n, peaks_training_data.l
     ms_size = 10
     X, C = sample_minibatch(X, C, ms_size, True)
@@ -82,22 +83,41 @@ def section_2b():
 
     resnet_layer.forward(X=X, C=C)
 
-    # jacobian_test(lambda b: ResNetLayer(dim=n, activation=Activation.TANH,
-    #                                     w1_vector = resnet_layer.w1_vector, w2_vector = resnet_layer.w2_vector,
-    #                                     b=b).forward(X=X, C=C), resnet_layer.jac_db_mul_v, n)
+    jacobian_test(lambda b: ResNetLayer(dim=n, activation=Activation.TANH,
+                                        w1_vector = resnet_layer.w1_vector, w2_vector = resnet_layer.w2_vector,
+                                        b=b).forward(X=X, C=C), resnet_layer.jac_db_mul_v, n)
     jacobian_test(lambda w1_vector: ResNetLayer(dim=n, activation=Activation.TANH,
                                         w1_vector=w1_vector, w2_vector=resnet_layer.w2_vector,
                                         b=resnet_layer.b).forward(X=X, C=C), resnet_layer.jac_dw1_mul_v, n * n)
-    # jacobian_test(lambda x: layer.forward(X=x.reshape(n, ms_size, order='F'))[0], layer.jac_dx_mul_v, n * ms_size)
-    # jacobian_test(lambda w_vector: layer.forward(X=X, W=w_vector.reshape(l, n, order='F'))[0], layer.jac_dw_mul_v,
-    #               l * n)
+    jacobian_test(lambda w2_vector: ResNetLayer(dim=n, activation=Activation.TANH,
+                                                w1_vector=resnet_layer.w1_vector, w2_vector=w2_vector,
+                                                b=resnet_layer.b).forward(X=X, C=C), resnet_layer.jac_dw2_mul_v, n * n)
+    jacobian_test(lambda x_vector: resnet_layer.forward(X=x_vector.reshape(n, ms_size, order='F'), C=C), resnet_layer.jac_dx_mul_v,
+                  n * ms_size)
 
     X, C = sample_minibatch(X, C, 1, True)
     resnet_layer.forward(X=X, C=C)
-    # jacobian_transpose_test(resnet_layer.jac_db_mul_v, resnet_layer.jac_transpose_db_mul_v, n, n)
+    jacobian_transpose_test(resnet_layer.jac_db_mul_v, resnet_layer.jac_transpose_db_mul_v, n, n)
     jacobian_transpose_test(resnet_layer.jac_dw1_mul_v, resnet_layer.jac_transpose_dw1_mul_v, n, n * n)
-    #jacobian_transpose_test(layer.jac_dx_mul_v, layer.jac_transpose_dx_mul_v, n, n)
-    #jacobian_transpose_test(layer.jac_dw_mul_v, layer.jac_transpose_dw_mul_v, n, n * n)
+    jacobian_transpose_test(resnet_layer.jac_dw2_mul_v, resnet_layer.jac_transpose_dw2_mul_v, n, n * n)
+    jacobian_transpose_test(resnet_layer.jac_dx_mul_v, resnet_layer.jac_transpose_dx_mul_v, n, n)
+
+    nn = NeuralNetwork(
+        layers=[
+            ResNetLayer(dim=n,
+                        activation=Activation.TANH),
+            SoftmaxLayer(input_dim=n, output_dim=l)
+        ]
+    )
+    nn.forward(X_train, C_train)
+    nn.backprop()
+
+    f = lambda weights_and_bias_vector: nn.set_weights_and_get_loss(weights_and_bias_vector, X=X_train, C=C_train)
+    grad_f = lambda *args: nn.get_gradient_vector()
+
+    x = nn.get_weights_and_biases_vector()
+
+    gradient_test(f, grad_f, x.size, x)
 
 def section_2c():
     L = 5
@@ -154,10 +174,10 @@ def section_1():
     section_1c()
 
 def section_2():
-    #section_2a()
+    section_2a()
     section_2b()
-    #section_2c()
-    #section_2d()
+    section_2c()
+    section_2d()
 
 
 
