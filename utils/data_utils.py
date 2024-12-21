@@ -44,11 +44,10 @@ def create_dataset_training_data(X_raw, C, percentage = 1):
 
     return training_data
 
-
-def get_dataset(dataset_name, train_percentage = 1):
+def get_dataset(dataset_name, percentage = 1):
     dataset = load_dataset(dataset_name)
-    training_data = create_dataset_training_data(dataset["X_train"], dataset["C_train"], train_percentage)
-    validation_data = create_dataset_training_data(dataset["X_validation"], dataset["C_validation"])
+    training_data = create_dataset_training_data(dataset["X_train"], dataset["C_train"], percentage)
+    validation_data = create_dataset_training_data(dataset["X_validation"], dataset["C_validation"], percentage)
 
     return training_data, validation_data
 

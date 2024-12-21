@@ -1,4 +1,5 @@
 import numpy as np
+from matplotlib import pyplot as plt
 
 from activation import Activation
 from layers.layer import Layer
@@ -6,43 +7,57 @@ from layers.res_net_layer import ResNetLayer
 from layers.softmax_layer import SoftmaxLayer
 from neural_network import NeuralNetwork
 from utils.data_utils import get_dataset, sample_minibatch
-from gradient_descent import sgd
+from gradient_descent import sgd, sgd_with_momentum
 from tests.gradient_and_jacobian_test import gradient_test, jacobian_test, jacobian_transpose_test
-from least_squares import generate_least_squares, least_squares_gradient, plot_gradient_descent_least_squares_result, \
-    least_squares_loss
+from least_squares import generate_least_squares, least_squares_gradient, least_squares_loss, plot_line_fitting
 from softmax_cross_entropy import softmax_cross_entropy_loss, softmax_cross_entropy_gradient_dw
-from tests.sgd_test import test_dataset_learning_rates_and_batch_sizes
+from tests.sgd_test import compare_different_batch_sizes
+from utils.figure_utils import plot_loss_over_iterations
 from utils.neural_network_utils import create_basic_neural_network_with_l_layers
 
 
 def section_1a():
-    peaks_training_data, _ = get_dataset("Peaks")
+    peaks_training_data, _ = get_dataset("Peaks", 0.25)
     X, C, n, l = peaks_training_data.X, peaks_training_data.C, peaks_training_data.n, peaks_training_data.l
 
     softmax_cross_entropy_func = lambda w : softmax_cross_entropy_loss(X, C, w)
     softmax_cross_entropy_gradient_func = lambda w : softmax_cross_entropy_gradient_dw(X, C, w)
 
-    gradient_test(softmax_cross_entropy_func, softmax_cross_entropy_gradient_func, (n+1) * l)
+    gradient_test(softmax_cross_entropy_func, softmax_cross_entropy_gradient_func, (n+1) * l, plot_title="Gradient Test Results - Cross Entropy Gradient")
 
 def section_1b():
-    m = 20
+    m = 100
     A, b, x_points = generate_least_squares(m)
     x = np.random.rand(2, 1)
-    min_point, loss_list, _, theta_list = sgd(A, b, x,
+    _, sgd_loss_list, _, sgd_theta_list = sgd(A, b, x,
                                               grad_f=least_squares_gradient,
                                               loss_func=least_squares_loss,
-                                              accuracy_func=lambda *args: args,
-                                              batch_size=5,
-                                              max_epochs=400,
-                                              tolerance=-0.01)
-    for i in range(0, len(theta_list), 30):
-        plot_gradient_descent_least_squares_result(x_points, b, theta_list[i])
+                                              batch_size=10,
+                                              max_iterations=300,
+                                              tolerance=0.01)
 
+    _, sgd_with_momentum_loss_list, _, sgd_with_momentum_theta_list = sgd_with_momentum(A, b, x,
+                                                            grad_f=least_squares_gradient,
+                                                            loss_func=least_squares_loss,
+                                                            batch_size=10,
+                                                            max_iterations=300,
+                                                            tolerance=0.01)
+    plt.figure(figsize=(10, 5))
+    plt.subplot(1, 2, 1)
+    plot_loss_over_iterations(sgd_loss_list, "SGD")
+    plt.subplot(1, 2, 2)
+    plot_loss_over_iterations(sgd_with_momentum_loss_list, "SGD with Momentum")
+    plt.tight_layout()
+    plt.show()
+
+    plot_line_fitting(A, b, theta_list=sgd_theta_list[0:150], final_theta=sgd_theta_list[-1], x_points = x_points, method="SGD", interval = 50)
+    plot_line_fitting(A, b, theta_list=sgd_with_momentum_theta_list[0:150], final_theta=sgd_with_momentum_theta_list[-1], x_points = x_points, method="SGD With Momentum", interval = 50)
 
 def section_1c():
-    test_dataset_learning_rates_and_batch_sizes("Peaks")
-    test_dataset_learning_rates_and_batch_sizes("GMM")
-    test_dataset_learning_rates_and_batch_sizes("SwissRoll")
+    # test_dataset_learning_rates_and_batch_sizes("SwissRoll")
+    # test_dataset_learning_rates_and_batch_sizes("GMM")
+    # test_dataset_learning_rates_and_batch_sizes("Peaks")
+    compare_different_batch_sizes("GMM")
 
 def section_2a():
     peaks_training_data, _ = get_dataset("Peaks")
@@ -135,7 +150,6 @@ def section_2c():
 
     gradient_test(f, grad_f, x.size, x)
 
-
 def section_2d():
     peaks_training_data, peak_validation_data = get_dataset("GMM")
     X_raw, C, n, l = peaks_training_data.X_raw, peaks_training_data.C, peaks_training_data.n, peaks_training_data.l
@@ -182,5 +196,4 @@ def section_2():
 
 
 if __name__ == '__main__':
-    #section_1()
-    section_2()
+    section_1c()
