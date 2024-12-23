@@ -50,5 +50,6 @@ def plot_line_fitting(A, b, theta_list, x_points, method, interval=50, final_the
     plt.ylabel("y")
     plt.title(f"{method} - Least Squares Line Fitting Progress")
     plt.legend()
+    plt.savefig(f"output/Section 1b/{method}-least-squares.png")
     plt.show()
 

@@ -15,23 +15,29 @@ class NeuralNetwork:
     def train(self, X_train, C_train, X_validation, C_validation, epochs, mb_size, learning_rate):
         epoch = 0
         num_samples = X_train.shape[1]
-
+        num_minibatches = int(num_samples / mb_size)
+        train_accuracy, validation_accuracy, loss_list = [], [], []
         while epoch < epochs:
             shuffled_indices = np.random.permutation(num_samples)
-            loss = 0
+            loss = []
             lr = learning_rate * (32/(32 + epoch))
             for i in range(0, num_samples, mb_size):
-                indices = shuffled_indices[i:i + mb_size]
+                indices = shuffled_indices[i:min(i + mb_size, num_samples)]
                 X_mb, C_mb = X_train[:,indices], C_train[:,indices]
                 loss += self.forward(X=X_mb, C=C_mb)
                 self.backprop()
                 self.update_weights(lr)
 
-            train_accuracy = self.test(X_train, C_train)
-            validation_accuracy = self.test(X_validation, C_validation)
+            train_acc = self.test(X_train, C_train)
+            train_accuracy.append(train_acc)
+            validation_acc = self.test(X_validation, C_validation)
+            validation_accuracy.append(validation_acc)
+            loss_list.append(loss / num_minibatches)
 
-            print(f"epoch {epoch} finished. accuracy on validation set: {validation_accuracy}. accuracy on training set: {train_accuracy}")
+            print(f"epoch {epoch} finished. accuracy on validation set: {validation_acc}. accuracy on training set: {train_acc}")
             epoch += 1
+
+        return train_accuracy, validation_accuracy, loss_list
 
     def test(self, X_test, C_test):
         self.forward(X=X_test, C=C_test)

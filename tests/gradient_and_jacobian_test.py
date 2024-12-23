@@ -1,20 +1,23 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
+from neural_network import NeuralNetwork
 from utils.figure_utils import plot_train_vs_validation_results
 
 
-def generate_verification_test_plot(epsilons, first_equation, second_equation, title = 'Gradient Test Results'):
+def generate_verification_test_plot(epsilons, first_equation, second_equation, title = 'Gradient Test Results', filename=None):
     plt.figure(figsize=(8, 6))
 
     plt.plot(range(1, len(epsilons)+1), np.abs(first_equation), label='Zero order approximation', marker='o')
     plt.plot(range(1, len(epsilons)+1), np.abs(second_equation), label='First order approximation', marker='x')
     plt.yscale('log')
-    plt.xlabel(r'$\epsilon$', fontsize=12)
+    plt.xlabel('k', fontsize=12)
     plt.ylabel('Value', fontsize=12)
     plt.title(title)
     plt.legend()
     plt.grid()
+    if filename is not None:
+        plt.savefig(filename, dpi=300)
     plt.show()
 
 
@@ -22,7 +25,7 @@ def generate_verification_test_plot(epsilons, first_equation, second_equation, t
     f: R^{dim} -> R
     grad_f: R^{dim} -> R^{dim}
 '''
-def gradient_test(f, grad_f, dim, x = None, plot_title = "Gradient Test Results"):
+def gradient_test(f, grad_f, dim, x = None, plot_title = "Gradient Test Results", filename = None):
     x = x if x is not None else np.random.rand(dim, 1)
     grad_f_x = grad_f(x)
     n_points = 12
@@ -33,7 +36,7 @@ def gradient_test(f, grad_f, dim, x = None, plot_title = "Gradient Test Results"
     first_equation = np.array([np.squeeze(np.abs(f(x+eps*d) - f(x))) for eps in epsilons])
     second_equation = np.array([np.squeeze(np.abs(f(x+eps*d) - f(x) - eps*d.T@grad_f_x)) for eps in epsilons])
 
-    generate_verification_test_plot(epsilons, first_equation, second_equation, title = plot_title)
+    generate_verification_test_plot(epsilons, first_equation, second_equation, title = plot_title, filename = filename)
 
 def validate_gradient_test():
     # Test on some simple examples
@@ -41,9 +44,9 @@ def validate_gradient_test():
    # gradient_test(lambda v: np.sum(np.square(v)), lambda v: 2 * v, 5)
     gradient_test(lambda x: x * 5, lambda _x: np.float16(5), 1)
 
-def jacobian_test(f, jac_dx_v, dim):
+def jacobian_test(f, jac_dx_v, dim, title="Jacobian Test Results"):
     x = np.random.rand(dim, 1)
-    n_points = 15
+    n_points = 12
     epsilons = 0.25 ** np.arange(n_points)
     d = np.random.rand(dim, 1)
     d = d / np.linalg.norm(d)
@@ -51,10 +54,10 @@ def jacobian_test(f, jac_dx_v, dim):
     first_equation = np.array([np.linalg.norm(f(x+eps*d) - f(x), ord=2) for eps in epsilons])
     second_equation = np.array([np.linalg.norm(f(x+eps*d) - f(x) - jac_dx_v(x, eps*d), ord=2) for eps in epsilons])
 
-    generate_verification_test_plot(epsilons, first_equation, second_equation, title="Jacobian Test Results")
+    generate_verification_test_plot(epsilons, first_equation, second_equation, title=title)
 
-def jacobian_transpose_test(jac_dx_v, jac_transpose_dx_v, dim_u, dim_v):
-    num_iterations = 15
+def jacobian_transpose_test(jac_dx_v, jac_transpose_dx_v, dim_u, dim_v, title = "Jacobian Transpose Test Results"):
+    num_iterations = 12
     errors = []
 
     for i in range(num_iterations):
@@ -66,7 +69,7 @@ def jacobian_transpose_test(jac_dx_v, jac_transpose_dx_v, dim_u, dim_v):
         error = np.abs(np.squeeze(first - second))
         errors.append(error)
 
-    plot_train_vs_validation_results(errors, x_label ="Iteration", y_label ="Error", title="Transpose Test", label_train=None)
+    plot_train_vs_validation_results(errors, x_label ="Iteration", y_label ="Error", title=title, label_train=None)
 
 
 def validate_jacobian_test():
@@ -107,7 +110,15 @@ def validate_jacobian_test():
     jacobian_test(f, jac_f_v, 2)
     jacobian_test(g, jac_g_v, 4)
 
+def gradient_test_for_nn(nn: NeuralNetwork, X_train, C_train, title = "Gradient Test For Neural Network"):
+    nn.forward(X_train, C_train)
+    nn.backprop()
 
+    f = lambda weights_and_bias_vector: nn.set_weights_and_get_loss(weights_and_bias_vector, X=X_train, C=C_train)
+    grad_f = lambda *args: nn.get_gradient_vector()
+
+    x = nn.get_weights_and_biases_vector()
+    gradient_test(f, grad_f, x.size, x, plot_title=title)
 
 if __name__ == '__main__':
     validate_gradient_test()

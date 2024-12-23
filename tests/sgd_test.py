@@ -1,6 +1,3 @@
-import pickle
-from itertools import product
-
 import numpy as np
 from matplotlib import pyplot as plt
 
@@ -39,6 +36,7 @@ def plot_data_with_two_labels(X, labels):
     plt.title('Binary Classification: y = x')
     plt.legend()
     plt.grid(True)
+    plt.savefig(f"output/Section 1b/Two Labels Data Plot.png", dpi=300, bbox_inches='tight')
     plt.show()
 
 def plot_data_with_three_labels(X, labels):
@@ -82,12 +80,12 @@ def test_logistic_regression_with_two_labels():
     initial_weights_vector = flatten_weights_matrix_to_vector(W)
 
     min_point, loss_progression_list, accuracy_list, _ = sgd_with_momentum(X, C, initial_weights_vector,
-                                                             grad_f=softmax_cross_entropy_gradient_dw,
-                                                             loss_func=softmax_cross_entropy_loss,
-                                                             accuracy_func=softmax_cross_entropy_accuracy,
-                                                             batch_size=32,
-                                                             max_iterations=300,
-                                                             is_samples_in_columns=True)
+                                                                           grad_f=softmax_cross_entropy_gradient_dw,
+                                                                           loss_func=softmax_cross_entropy_loss,
+                                                                           accuracy_func=softmax_cross_entropy_accuracy,
+                                                                           batch_size=32,
+                                                                           max_epochs=300,
+                                                                           is_samples_in_columns=True)
     plot_data_with_two_labels(X, labels)
     plot_train_vs_validation_results(values_train=loss_progression_list, x_label ="Iteration", y_label ="Loss", title="Loss progression")
     plot_train_vs_validation_results(values_train=accuracy_list, x_label ="Iteration", y_label ="Accuracy Percentage", title="Accuracy Progression")
@@ -100,12 +98,12 @@ def test_logistic_regression_with_three_labels():
     initial_weights_vector = flatten_weights_matrix_to_vector(W)
 
     min_point, loss_progression_list, accuracy_list, _ = sgd_with_momentum(X, C, initial_weights_vector,
-                                                             grad_f=softmax_cross_entropy_gradient_dw,
-                                                             loss_func=softmax_cross_entropy_loss,
-                                                             accuracy_func=softmax_cross_entropy_accuracy,
-                                                             batch_size=32,
-                                                             max_iterations=300,
-                                                             is_samples_in_columns=True)
+                                                                           grad_f=softmax_cross_entropy_gradient_dw,
+                                                                           loss_func=softmax_cross_entropy_loss,
+                                                                           accuracy_func=softmax_cross_entropy_accuracy,
+                                                                           batch_size=32,
+                                                                           max_epochs=300,
+                                                                           is_samples_in_columns=True)
     plot_data_with_three_labels(X, labels)
     plot_train_vs_validation_results(values_train=loss_progression_list, x_label="Iteration", y_label="Loss", title="Loss progression")
     plot_train_vs_validation_results(values_train=accuracy_list, x_label="Iteration", y_label="Accuracy Percentage", title="Accuracy Progression")
@@ -118,10 +116,10 @@ def compare_different_batch_sizes(dataset):
 
     initial_weights_vector = flatten_weights_matrix_to_vector(W)
 
-    batch_sizes = [16, 32, 64, 128, 256, 512]
+    batch_sizes = [16, 64, 512, 1024]
     train_accuracy_per_batch_size = {}
     validation_accuracy_per_batch_size = {}
-
+    max_epochs = 150
     for batch_size in batch_sizes:
         min_point, loss_progression_list, train_accuracy_list, theta_list = sgd_with_momentum(
             X_train, C_train, initial_weights_vector,
@@ -129,30 +127,90 @@ def compare_different_batch_sizes(dataset):
             loss_func=softmax_cross_entropy_loss,
             accuracy_func=softmax_cross_entropy_accuracy,
             batch_size=batch_size,
-            max_iterations=1000,
+            max_epochs=max_epochs,
+            learning_rate=0.01,
             is_samples_in_columns=True
         )
 
         train_accuracy_per_batch_size[batch_size] = train_accuracy_list
         validation_accuracy_per_batch_size[batch_size] = [softmax_cross_entropy_accuracy(X_validation, C_validation, theta) for theta in theta_list]
 
+    plt.figure(figsize=(10, 6))
     for batch_size in batch_sizes:
-        plot_train_vs_validation_results(values_train=train_accuracy_per_batch_size[batch_size],
-                                         values_validation=validation_accuracy_per_batch_size[batch_size],
-                                         x_label="Iteration", y_label="Accuracy Percentage", title="Accuracy Progression")
+        plt.plot(train_accuracy_per_batch_size[batch_size], label=f"Batch Size {batch_size}")
+
+    plt.xlabel("Epoch")
+    plt.ylabel("Train Set Accuracy")
+    plt.title(f"{dataset} - Softmax Accuracy On Training Set With SGD With Momentum")
+    plt.legend()
+    plt.grid(True)
+    plt.savefig(f"output/Section 1c/{dataset} - Softmax Accuracy Training With SGD With momentum By Batch Size - {max_epochs} iterations - Start {batch_sizes[0]}")
+    plt.show()
+
     plt.figure(figsize=(10, 6))
     for batch_size in batch_sizes:
         plt.plot(validation_accuracy_per_batch_size[batch_size], label=f"Batch Size {batch_size}")
 
-    plt.xlabel("Iteration")
-    plt.ylabel("Validation Accuracy")
-    plt.title("Validation Accuracy Progression Across Batch Sizes")
+    plt.xlabel("Epoch")
+    plt.ylabel("Validation Set Accuracy")
+    plt.title(f"{dataset} - Softmax Accuracy On Validation Set With SGD With Momentum")
     plt.legend()
     plt.grid(True)
+    plt.savefig(
+        f"output/Section 1c/{dataset} - Softmax Accuracy Validation With SGD With momentum By Batch Size - {max_epochs} iterations - Start {batch_sizes[0]}")
     plt.show()
+
 
 def compare_different_learning_rates(dataset):
     dataset_training_data, dataset_validation_data = get_dataset(dataset, 0.25)
+    X_train, C_train, W = dataset_training_data.X, dataset_training_data.C, dataset_training_data.W
+    X_validation, C_validation = dataset_validation_data.X, dataset_validation_data.C
+
+    initial_weights_vector = flatten_weights_matrix_to_vector(W)
+
+    learning_rates = [0.001, 0.01, 0.1]
+    train_accuracy_per_learning_rate = {}
+    validation_accuracy_per_learning_rate = {}
+
+    for learning_rate in learning_rates:
+        min_point, loss_progression_list, train_accuracy_list, theta_list = sgd_with_momentum(
+            X_train, C_train, initial_weights_vector,
+            grad_f=softmax_cross_entropy_gradient_dw,
+            loss_func=softmax_cross_entropy_loss,
+            accuracy_func=softmax_cross_entropy_accuracy,
+            batch_size=64,
+            max_epochs=200,
+            learning_rate=learning_rate,
+            is_samples_in_columns=True
+        )
+
+        train_accuracy_per_learning_rate[learning_rate] = train_accuracy_list
+        validation_accuracy_per_learning_rate[learning_rate] = [
+            softmax_cross_entropy_accuracy(X_validation, C_validation, theta) for theta in theta_list]
+
+    plt.figure(figsize=(10, 6))
+    for learning_rate in learning_rates:
+        plt.plot(train_accuracy_per_learning_rate[learning_rate], label=f"{learning_rate}")
+
+    plt.xlabel("Epoch")
+    plt.ylabel("Train Set Accuracy")
+    plt.title(f"{dataset} - Softmax Accuracy On Training Set With SGD With Momentum")
+    plt.legend()
+    plt.grid(True)
+    plt.savefig(f"output/Section 1c/{dataset} - Softmax Accuracy Training With SGD With momentum By Learning Rate")
+    plt.show()
+
+    plt.figure(figsize=(10, 6))
+    for learning_rate in learning_rates:
+        plt.plot(validation_accuracy_per_learning_rate[learning_rate], label=f"{learning_rate}")
+
+    plt.xlabel("Epoch")
+    plt.ylabel("Validation Set Accuracy")
+    plt.title(f"{dataset} - Softmax Accuracy On Validation Set With SGD With Momentum")
+    plt.legend()
+    plt.grid(True)
+    plt.savefig(f"output/Section 1c/{dataset} - Softmax Accuracy Validation With SGD With momentum By Learning Rate")
+    plt.show()
 
 
 if __name__ == '__main__':
