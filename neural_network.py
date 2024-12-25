@@ -20,7 +20,7 @@ class NeuralNetwork:
         while epoch < epochs:
             shuffled_indices = np.random.permutation(num_samples)
             loss = []
-            lr = learning_rate * (32/(32 + epoch))
+            lr = learning_rate * (320/(320 + epoch))
             for i in range(0, num_samples, mb_size):
                 indices = shuffled_indices[i:min(i + mb_size, num_samples)]
                 X_mb, C_mb = X_train[:,indices], C_train[:,indices]

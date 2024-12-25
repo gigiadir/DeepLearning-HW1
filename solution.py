@@ -7,7 +7,7 @@ from layers.res_net_layer import ResNetLayer
 from layers.softmax_layer import SoftmaxLayer
 from neural_network import NeuralNetwork
 from tests.neural_network_test import test_different_network_depths, test_different_learning_rates, \
-    test_different_batch_sizes
+    test_different_batch_sizes, test_network_for_swissroll
 from utils.data_utils import get_dataset, sample_minibatch
 from gradient_descent import sgd, sgd_with_momentum
 from tests.gradient_and_jacobian_test import gradient_test, jacobian_test, jacobian_transpose_test, gradient_test_for_nn
@@ -67,7 +67,7 @@ def section_1b():
 
 
 def section_1c():
-    for dataset in ["Peaks"]:
+    for dataset in ["SwissRoll"]:
     #     compare_different_batch_sizes(dataset)
     #     compare_different_learning_rates(dataset)
         dataset_training_data, dataset_validation_data = get_dataset(dataset, 1)
@@ -77,11 +77,13 @@ def section_1c():
 
         theta, loss_list, train_accuracy_list, theta_list = sgd_with_momentum(X_train, C_train, initial_weights_vector, grad_f=softmax_cross_entropy_gradient_dw,
                                     loss_func=softmax_cross_entropy_loss, accuracy_func=softmax_cross_entropy_accuracy,
-                                    batch_size = 256, learning_rate=0.001, max_epochs=500)
+                                    batch_size = 64, learning_rate=0.001, max_epochs=300)
 
         validation_accuracy_list = [softmax_cross_entropy_accuracy(X_validation, C_validation, theta) for theta in theta_list]
         plot_train_vs_validation_results(values_train=train_accuracy_list, values_validation=validation_accuracy_list, x_label="Epoch",
                                          title=f"{dataset} - Accuracy By Epoch")
+        plot_train_vs_validation_results(loss_list, None, x_label="Epoch", y_label="Loss", title=f"{dataset} - Loss Function")
+
 
 
 
@@ -193,16 +195,59 @@ def section_2c():
     gradient_test_for_nn(nn, X_train, C_train, "Gradient Test - Neural Network with L = 4 ResNet Layers, K = 3 Layers And Softmax Layer")
 
 def section_2d():
-    # for dataset in (["Peaks", "SwissRoll", "GMM"]):
-    #     training_data, validation_data = get_dataset(dataset)
+    for dataset in (["SwissRoll", "GMM", "Peaks"]):
+        training_data, validation_data = get_dataset(dataset)
+        X_raw, C, n, l = training_data.X_raw, training_data.C, training_data.n, training_data.l
+        X_validation, C_validation = validation_data.X_raw, validation_data.C
+
+        nn = NeuralNetwork(
+            layers = [
+                Layer(
+                    input_dim = n,
+                    output_dim = 8,
+                    activation=Activation.TANH
+                ),
+                Layer(
+                    input_dim=8,
+                    output_dim=16,
+                    activation=Activation.TANH
+                ),
+                SoftmaxLayer(
+                    input_dim= 16,
+                    output_dim = l
+                )
+            ]
+        )
+
+        train_accuracy, validation_accuracy, loss_list = nn.train(X_train = X_raw,
+                 C_train = C,
+                 X_validation=X_validation,
+                 C_validation=C_validation,
+                 epochs=100,
+                 mb_size = 16,
+                 learning_rate = 0.01)
+
+        plot_train_vs_validation_results(train_accuracy, validation_accuracy, x_label = "Epoch", y_label = "Accuracy",
+                                         title=f"{dataset} - Accuracy vs. Epoch")
+
+    for dataset in ["Peaks", "GMM", "SwissRoll"]:
+        test_different_network_depths(dataset)
+        test_different_learning_rates(dataset)
+        test_different_batch_sizes(dataset)
+
+    test_network_for_swissroll()
+
+def section_2e():
+    # for dataset in ["GMM", "Peaks", "SwissRoll"]:
+    #     training_data, validation_data = get_dataset(dataset, train_percentage=0.008 if dataset != "SwissRoll" else 0.01)
     #     X_raw, C, n, l = training_data.X_raw, training_data.C, training_data.n, training_data.l
     #     X_validation, C_validation = validation_data.X_raw, validation_data.C
     #
     #     nn = NeuralNetwork(
-    #         layers = [
+    #         layers=[
     #             Layer(
-    #                 input_dim = n,
-    #                 output_dim = 8,
+    #                 input_dim=n,
+    #                 output_dim=8,
     #                 activation=Activation.TANH
     #             ),
     #             Layer(
@@ -211,30 +256,29 @@ def section_2d():
     #                 activation=Activation.TANH
     #             ),
     #             SoftmaxLayer(
-    #                 input_dim= 16,
-    #                 output_dim = l
+    #                 input_dim=16,
+    #                 output_dim=l
     #             )
     #         ]
     #     )
     #
-    #     train_accuracy, validation_accuracy, loss_list = nn.train(X_train = X_raw,
-    #              C_train = C,
-    #              X_validation=X_validation,
-    #              C_validation=C_validation,
-    #              epochs=2,
-    #              mb_size = 32,
-    #              learning_rate = 0.05)
-    #
+    #     train_accuracy, validation_accuracy, loss_list = nn.train(X_train=X_raw,
+    #                                                                   C_train=C,
+    #                                                                   X_validation=X_validation,
+    #                                                                   C_validation=C_validation,
+    #                                                                   epochs=5000,
+    #                                                                   mb_size=16,
+    #                                                                   learning_rate=0.01)
     #     plot_train_vs_validation_results(train_accuracy, validation_accuracy, x_label = "Epoch", y_label = "Accuracy",
-    #                                      title=f"{dataset} - Accuracy vs. Epoch")
+    #                                                  title=f"{dataset} - Accuracy vs. Epoch")
 
+    # test_network_for_swissroll(train_percentage=0.01)
+    get_train_percentage = lambda dataset: 0.01 if dataset == "SwissRoll" else 0.008
     for dataset in ["GMM", "SwissRoll", "Peaks"]:
-        test_different_network_depths(dataset)
-        test_different_learning_rates(dataset)
-        test_different_batch_sizes(dataset)
-
-
-
+        train_percentage = get_train_percentage(dataset)
+        # test_different_network_depths(dataset, train_percentage)
+        test_different_learning_rates(dataset, train_percentage)
+        test_different_batch_sizes(dataset, train_percentage)
 
 def section_1():
     section_1a()
@@ -246,6 +290,8 @@ def section_2():
     section_2b()
     section_2c()
     section_2d()
+    section_2e()
 
 if __name__ == '__main__':
-    section_2d()
+    section_2e()
+

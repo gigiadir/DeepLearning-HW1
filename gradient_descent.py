@@ -49,8 +49,8 @@ def sgd_with_momentum(X, C, initial_W, batch_size,
         num_minibatches = int(num_samples / batch_size)
         while epoch < max_epochs:
             shuffled_indices = np.random.permutation(num_samples)
+            loss = 0
             for i in range(0, num_samples, batch_size):
-                loss = 0
                 indices = shuffled_indices[i:i + batch_size]
                 X_batch, C_batch = X[:, indices], C[:, indices]
                 g = grad_f(X_batch, C_batch, theta)

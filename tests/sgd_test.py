@@ -36,7 +36,7 @@ def plot_data_with_two_labels(X, labels):
     plt.title('Binary Classification: y = x')
     plt.legend()
     plt.grid(True)
-    plt.savefig(f"output/Section 1b/Two Labels Data Plot.png", dpi=300, bbox_inches='tight')
+    plt.savefig(f"Two Labels Data Plot.png", dpi=300, bbox_inches='tight')
     plt.show()
 
 def plot_data_with_three_labels(X, labels):

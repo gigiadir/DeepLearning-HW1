@@ -9,6 +9,7 @@ def plot_train_vs_validation_results(values_train, values_validation = None, x_l
     if values_validation:
         plt.plot(range(1, len(values_train) + 1), values_validation, label=label_validation, color='r', linestyle='dashed')
 
+    # plt.ylim(0, 0.1)
     plt.xlabel(x_label)
     plt.ylabel(y_label)
     plt.title(title)
